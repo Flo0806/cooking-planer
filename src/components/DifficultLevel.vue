@@ -5,11 +5,19 @@
       v-for="n in maxLevel"
       :key="n"
       :class="['cake', getCakeColorClass(n)]"
+      @click="!readOnly && selectCake(n)"
     />
+    <div
+      v-if="!readOnly"
+      :class="['cake editable-text', getCakeColorClass(value)]"
+    >
+      {{ getLevelText() }}
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
+import { ref } from 'vue'
 import { CakeIcon } from '@heroicons/vue/24/solid' // Heroicons Cake-Icon importieren
 
 // Props
@@ -23,12 +31,21 @@ const props = defineProps({
     type: Number,
     default: 4, // Die maximale Anzahl der Cakes (Schwierigkeitsstufen)
   },
+  readOnly: {
+    type: Boolean,
+    default: false, // Standardmäßig ist das Control klickbar
+  },
 })
+
+// Lokale variablen setzen
+const value = ref(props.value)
+
+const emit = defineEmits(['difficult-value']) // Event für das Setzen des Werts
 
 // Funktion, um die Farbe der Cakes basierend auf dem Wert zu berechnen
 const getCakeColorClass = n => {
-  if (props.value >= n) {
-    switch (props.value) {
+  if (value.value >= n) {
+    switch (value.value) {
       case 1:
         return 'green' // Grün für Level 1
       case 2:
@@ -44,6 +61,28 @@ const getCakeColorClass = n => {
     return 'gray' // Graue Cakes für nicht gewählte Level
   }
 }
+
+// Funktion für den Text hinter den Kuchen - wenn editierbar
+const getLevelText = () => {
+  switch (value.value) {
+    case 1:
+      return 'Einfach' // Grün für Level 1
+    case 2:
+      return 'In Ordnung' // Gelb für Level 2
+    case 3:
+      return 'Aufwendig' // Orange für Level 3
+    case 4:
+      return 'Sehr Aufwändig' // Rot für Level 4
+    default:
+      return ''
+  }
+}
+
+// Funktion, die ausgelöst wird, wenn der Benutzer einen Cake auswählt
+const selectCake = level => {
+  value.value = level
+  emit('difficult-value', level) // Emitiere den neuen Schwierigkeitswert
+}
 </script>
 
 <style lang="scss">
@@ -57,10 +96,16 @@ const getCakeColorClass = n => {
   height: 24px;
   padding: 0;
   color: gray; /* Standardmäßig graue Farbe */
+  cursor: pointer; /* Zeigt, dass das Icon klickbar ist */
+}
+
+.editable-text {
+  width: auto;
+  vertical-align: bottom;
 }
 
 .cake.green {
-  color: #e74c3c; /* Grün für Level 1 */
+  color: #27ae60; /* Grün für Level 1 */
 }
 
 .cake.yellow {
@@ -73,5 +118,13 @@ const getCakeColorClass = n => {
 
 .cake.red {
   color: #e74c3c; /* Rot für Level 4 */
+}
+
+.cake.gray {
+  color: gray; /* Graue Cakes für nicht gewählte Level */
+}
+
+.cake[disabled] {
+  cursor: not-allowed; /* Zeigt an, dass der Cake nicht klickbar ist, wenn ReadOnly */
 }
 </style>

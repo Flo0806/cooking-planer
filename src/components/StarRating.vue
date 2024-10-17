@@ -30,6 +30,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
+// defineEmits verwenden, um Events an die übergeordnete Komponente zu senden
+const emit = defineEmits(['rating-value'])
+
 // Props
 const props = defineProps({
   value: {
@@ -63,6 +66,7 @@ const clearHover = () => {
 // Methode zum Aktualisieren der Bewertung (nur wenn nicht im "readable" Modus)
 const updateRating = (star: number) => {
   rating.value = star
+  emit('rating-value', star)
 }
 
 // Berechnung, ob ein Stern voll gefüllt ist
