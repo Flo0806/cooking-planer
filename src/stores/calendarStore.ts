@@ -2,42 +2,6 @@
 import { defineStore } from 'pinia'
 
 //#region Mockdaten
-const recipes: Recipe[] = [
-  {
-    id: 'c9d6b33f-9127-4dbf-9b3c-7c61065ddc42',
-    image: 'https://example.com/spaghetti.jpg',
-    title: 'Spaghetti Carbonara',
-    description:
-      'Ein klassisches italienisches Pasta-Gericht mit Eiern, Käse, Speck und Pfeffer.',
-    rating: 4.5,
-    preparationTime: '25 Minuten',
-    category: 'Hauptgericht',
-    difficulty: 'leicht',
-  },
-  {
-    id: 'f47b9ef8-4e5b-4b82-85cf-9dcb097c02a8',
-    image:
-      'https://img.chefkoch-cdn.de/rezepte/1205621226313744/bilder/1508311/crop-642x428/amerikanische-pancakes.jpg',
-    title: 'Fluffige Pancakes',
-    description:
-      'Diese Pancakes sind leicht und fluffig, perfekt für ein gemütliches Frühstück.',
-    rating: 4.7,
-    preparationTime: '15 Minuten',
-    category: 'Frühstück',
-    difficulty: 'leicht',
-  },
-  {
-    id: '27c7c890-ec4f-4703-9dfd-1a4f3d96ab79',
-    image: 'https://example.com/chocolate-cake.jpg',
-    title: 'Schokoladenkuchen',
-    description:
-      'Ein reichhaltiger und saftiger Schokoladenkuchen, perfekt für jeden Anlass.',
-    rating: 4.9,
-    preparationTime: '50 Minuten',
-    category: 'Dessert',
-    difficulty: 'mittel',
-  },
-]
 
 //#endregion
 
@@ -69,6 +33,8 @@ interface CalendarState {
   selectedRecipeId?: string
   recipes: Recipe[]
 }
+
+const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL
 
 export const useCalendarStore = defineStore('calendar', {
   state: (): CalendarState => ({
@@ -165,7 +131,7 @@ export const useCalendarStore = defineStore('calendar', {
     },
     currentWeekNumber: 1,
     selectedRecipeId: undefined,
-    recipes: recipes, // [], // Alle bisher geladenen Rezepte
+    recipes: [], // Alle bisher geladenen Rezepte
   }),
   getters: {
     // Getter, der basierend auf currentWeekNumber entweder "current" oder "next" zurückgibt
@@ -182,6 +148,20 @@ export const useCalendarStore = defineStore('calendar', {
     },
   },
   actions: {
+    // Hole alle Rezepte
+    async fetchRecipes() {
+      try {
+        const response = await fetch(`${VITE_BACKEND_URL}/recipe/recipes`)
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`)
+        }
+        const recipes = await response.json()
+        console.log('GET DATA', recipes)
+        this.recipes = recipes // Speichere die Rezepte im Store
+      } catch (error) {
+        console.error('Fehler beim Abrufen der Rezepte:', error)
+      }
+    },
     // Setzte die Wochennummer
     setWeek(week: number) {
       week = Math.max(1, Math.min(week, 2))
