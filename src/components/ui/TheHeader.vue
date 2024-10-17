@@ -39,7 +39,7 @@ const toggleMenu = () => {
   justify-content: space-between;
   align-items: center;
   background-color: $header-background-color;
-  position: absolute;
+  position: fixed;
   left: 0;
   top: 0;
   width: 100%;
