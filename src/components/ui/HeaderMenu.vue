@@ -7,15 +7,17 @@
   <!-- Das eigentliche Menü mit Slide-In Animation -->
   <transition name="slide">
     <nav v-if="isOpen" class="menu">
-      <button class="menu-button" @click="onClick('Home')">Home</button>
-      <button class="menu-button" @click="onClick('About')">About</button>
-      <button class="menu-button" @click="onClick('Contact')">Contact</button>
-      <button class="menu-button" @click="onClick('Settings')">Settings</button>
+      <button class="menu-button" @click="onClick('home')">Übersicht</button>
+      <button class="menu-button" @click="onClick('recipes')">Rezepte</button>
     </nav>
   </transition>
 </template>
 
 <script lang="ts" setup>
+import { useRouter } from 'vue-router'
+
+const router = useRouter() // Nutze Router
+
 const emit = defineEmits(['close'])
 defineProps({
   isOpen: Boolean,
@@ -28,7 +30,7 @@ const closeMenu = () => {
 
 // Klick-Event-Handler für Buttons
 const onClick = (label: string) => {
-  console.log(`${label} clicked!`)
+  router.push({ name: label })
   closeMenu() // Menü nach Klick schließen
 }
 </script>
