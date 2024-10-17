@@ -44,9 +44,9 @@
             <h3>{{ recipe.title }}</h3>
             <div class="recipe-meta">
               <!-- StarRating Komponente -->
-              <StarRating :value="recipe.rating" />
+              <StarRating :value="recipe.rating" :ReadOnly="true" />
               <!-- DifficultLevel Komponente -->
-              <DifficultLevel :value="recipe.difficulty" />
+              <DifficultLevel :value="recipe.difficulty" :ReadOnly="true" />
             </div>
           </div>
         </div>
@@ -101,6 +101,10 @@ const imageLoaded = (id: string) => {
 // Rezepte laden, wenn die Komponente geladen wird
 onMounted(async () => {
   await calendarStore.fetchRecipes() // Rezepte vom Backend abrufen
+  // Ladezustand für alle Rezepte initialisieren
+  recipes.value.forEach(recipe => {
+    loadingImages.value[recipe.id] = true
+  })
 })
 
 // Funktion zur Navigation zur Rezept-Detailseite
@@ -123,7 +127,7 @@ const goToRecipe = (id: string) => {
   background-color: $primary-color;
   color: $inverse-font-color;
   padding: 5px 20px;
-  height: 37px;
+  height: 42px;
   margin-right: 0.5rem;
   display: flex;
   justify-content: center;
@@ -155,6 +159,7 @@ const goToRecipe = (id: string) => {
 }
 
 .search-input {
+  font-family: inherit;
   padding: 10px;
   border: 1px solid $input-border-color;
   border-radius: $border-radius;

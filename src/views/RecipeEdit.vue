@@ -1,5 +1,5 @@
 <template>
-  <div class="recipe-create">
+  <div class="recipe-create" v-if="recipe || isNewRecipe">
     <!-- Bildplatzhalter mit Vorschau -->
     <TheCard class="image-card">
       <div class="image-upload">
@@ -59,24 +59,44 @@
       <!-- Rating und Schwierigkeit -->
       <star-rating
         :class="{ invalid: ratingValidity === 'invalid' }"
-        :value="0"
+        :value="currentRating"
         @rating-value="onRatingUpdated"
       ></star-rating>
       <difficult-level
         @difficult-value="onDifficultUpdated"
-        :value="1"
+        :value="currentDifficultLevel"
       ></difficult-level>
     </TheCard>
 
     <!-- Speichern-Button -->
-    <button :disabled="!formValid()" class="save-button" @click="saveRecipe">
-      Speichern
-    </button>
+    <div style="display: flex; gap: 20px">
+      <button
+        :disabled="!formValid()"
+        class="cancel-button"
+        @click="saveRecipe"
+      >
+        Zurück
+      </button>
+      <button
+        :disabled="!formValid()"
+        class="save-button"
+        @click="router.push({ name: '/recipes' })"
+      >
+        Speichern
+      </button>
+    </div>
+  </div>
+  <div v-else>
+    <the-card>
+      <h2>Ups... Rezept nicht gefunden</h2>
+    </the-card>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useCalendarStore } from '@/stores/calendarStore'
 import TheCard from '../components/TheCard.vue'
 import UploadImage from '../components/UploadImage.vue'
 import StarRating from '../components/StarRating.vue'
@@ -93,12 +113,35 @@ const imageFile = ref<File | null>(null) // Bilddatei
 const currentRating = ref<number>(0) // Rating
 const currentDifficultLevel = ref<number>(1)
 
+const route = useRoute() // Zugriff auf die Route
+const router = useRouter() // Zugriff auf Router
+const calendarStore = useCalendarStore() // Zugriff auf den Store
+
+// Hole die ID aus den Routenparametern
+const recipeId = route.params.id as string
+
+// Prüfe, ob die Route für ein neues Rezept ist
+const isNewRecipe = computed(() => recipeId === 'new')
+
+// Suche nach dem Rezept im Store basierend auf der ID
+const recipe = computed(() =>
+  calendarStore.recipes.find(r => r.id === recipeId),
+)
+
 // Validation refs
 const titleValidity = ref('pending')
 const descriptionValidity = ref('pending')
 const categoryValidity = ref('pending')
 const durationValidity = ref('pending')
 const ratingValidity = ref('pending')
+
+// Lade die Rezepte, wenn die Komponente gemounted wird
+onMounted(async () => {
+  if (!isNewRecipe.value) {
+    // Lade die Rezepte, falls sie noch nicht im Store sind
+    await calendarStore.fetchRecipes()
+  }
+})
 
 // Funktion, um das Bild von der Upload-Komponente zu empfangen
 const onFileSelected = (file: File) => {
@@ -133,7 +176,7 @@ const saveRecipe = () => {
     rating: currentRating.value,
     difficulty: currentDifficultLevel.value,
   }
-  sendRecipe(recipeData, imageFile.value)
+  sendRecipe(recipeData, imageFile.value, !isNewRecipe.value ? 'PATCH' : 'POST')
 }
 
 // ----- Validation...
@@ -170,7 +213,39 @@ const formValid = (): boolean => {
     ratingValidity.value === 'valid'
   )
 }
+
+const setValidationToValid = () => {
+  titleValidity.value = 'valid'
+  descriptionValidity.value = 'valid'
+  categoryValidity.value = 'valid'
+  durationValidity.value = 'valid'
+  ratingValidity.value = 'valid'
+}
 // ----- Validation...
+
+// Beobachte das `recipe`, sobald es verfügbar ist
+watch(
+  () => recipe.value,
+  newRecipe => {
+    if (newRecipe) {
+      recipeTitle.value = newRecipe.title || ''
+      recipeDescription.value = newRecipe.description || ''
+      recipeCategory.value = newRecipe.category || ''
+      preparationTime.value = newRecipe.preparationTime || null
+      currentRating.value = newRecipe.rating || 0
+      currentDifficultLevel.value = newRecipe.difficulty || 1
+
+      // Setze das Bild, wenn eines vorhanden ist
+      imagePreview.value = newRecipe.image
+        ? `${VITE_BACKEND_URL}/uploads/${newRecipe.image}`
+        : null
+
+      // Wenn wir ein Rezept bekommen, ist die Form erstmal valide!
+      setValidationToValid()
+    }
+  },
+  { immediate: true }, // Direkt ausführen, wenn `recipe` bereits gesetzt ist
+)
 
 // Funktion, um das Rezept zu senden (Neu und Änderungen)
 async function sendRecipe(
@@ -180,26 +255,27 @@ async function sendRecipe(
 ) {
   try {
     let response
+    const urlByMethod = !isNewRecipe.value ? `/${recipe.value.id}` : ''
 
     if (imageFile) {
       // FormData verwenden, wenn ein Bild vorhanden ist
       const formData = new FormData()
       formData.append('title', recipeData.title)
       formData.append('description', recipeData.description)
-      formData.append('rating', recipeData.rating.toString())
-      formData.append('difficulty', recipeData.difficulty.toString())
-      formData.append('preparationTime', recipeData.preparationTime.toString())
+      formData.append('rating', recipeData.rating)
+      formData.append('difficulty', recipeData.difficulty)
+      formData.append('preparationTime', recipeData.preparationTime)
       formData.append('category', recipeData.category)
       formData.append('image', imageFile) // Bild hinzufügen
 
       // Sende den POST-Request mit FormData
-      response = await fetch(`${VITE_BACKEND_URL}/recipe`, {
+      response = await fetch(`${VITE_BACKEND_URL}/recipe${urlByMethod}`, {
         method,
         body: formData,
       })
     } else {
       // JSON senden, wenn kein Bild vorhanden ist
-      response = await fetch(`${VITE_BACKEND_URL}/recipe`, {
+      response = await fetch(`${VITE_BACKEND_URL}/recipe${urlByMethod}`, {
         method,
         headers: {
           'Content-Type': 'application/json',
@@ -216,6 +292,7 @@ async function sendRecipe(
 
     const result = await response.json()
     console.log('Rezept erfolgreich gesendet:', result)
+    router.push({ name: 'recipes' })
     return result
   } catch (error) {
     console.error('Fehler beim Senden des Rezepts:', error)
@@ -322,7 +399,34 @@ async function sendRecipe(
 }
 
 .save-button {
+  width: 150px;
   background-color: $primary-color;
+  color: $inverse-font-color;
+  padding: 15px 30px;
+  border: none;
+  border-radius: $border-radius;
+  cursor: pointer;
+  font-size: 18px;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: color.adjust($primary-color, $lightness: -10%);
+  }
+
+  &:disabled {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  @media (min-width: 1024px) {
+    padding: 20px 40px;
+    font-size: 20px; /* Größere Buttons auf Desktops */
+  }
+}
+
+.cancel-button {
+  width: 150px;
+  background-color: $error-color;
   color: $inverse-font-color;
   padding: 15px 30px;
   border: none;
