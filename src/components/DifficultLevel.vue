@@ -55,11 +55,12 @@ const getCakeColorClass = n => {
 .cake {
   width: 24px;
   height: 24px;
+  padding: 0;
   color: gray; /* Standardmäßig graue Farbe */
 }
 
 .cake.green {
-  color: #2ecc71; /* Grün für Level 1 */
+  color: #e74c3c; /* Grün für Level 1 */
 }
 
 .cake.yellow {
