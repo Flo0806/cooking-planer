@@ -5,12 +5,14 @@
   margin: 0 auto;
   padding: 0 1rem;
   font-weight: normal;
+  max-height: 100vh;
 }
 
 main {
   margin: auto;
   margin-top: 0;
   padding-top: calc(58px + 1rem); /* Wegen Header */
+  overflow: auto;
 }
 
 a,

@@ -3,7 +3,5 @@ import TheOverview from '../components/TheOverview.vue'
 </script>
 
 <template>
-  <main>
-    <the-overview />
-  </main>
+  <the-overview />
 </template>
