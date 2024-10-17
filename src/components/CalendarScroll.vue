@@ -58,6 +58,8 @@ const selectCard = index => {
 </script>
 
 <style lang="scss">
+@use 'sass:color';
+
 .calendar-scroll-container {
   overflow-x: auto; /* Ermöglicht horizontales Scrollen */
   white-space: nowrap;
@@ -86,9 +88,9 @@ const selectCard = index => {
   height: 132px;
 
   &.selected {
-    background-color: lighten(
+    background-color: color.adjust(
       $primary-color,
-      30%
+      $lightness: 30%
     ); /* Optische Kennzeichnung der ausgewählten Card */
     border: 2px solid $primary-color;
     box-sizing: border-box;

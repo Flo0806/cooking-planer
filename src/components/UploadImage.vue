@@ -54,6 +54,8 @@ const truncatedFileName = computed(() => {
 </script>
 
 <style lang="scss" scoped>
+@use 'sass:color';
+
 .upload-image {
   display: flex;
   flex-direction: column;
@@ -76,7 +78,7 @@ const truncatedFileName = computed(() => {
   transition: background-color 0.3s ease;
 
   &:hover {
-    background-color: darken($primary-color, 10%);
+    background-color: color.adjust($primary-color, $lightness: -10%);
   }
 }
 

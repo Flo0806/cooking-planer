@@ -34,6 +34,8 @@ const selectWeek = (week: number) => {
 </script>
 
 <style lang="scss">
+@use 'sass:color';
+
 .week-toggle {
   display: flex;
   justify-content: center;
@@ -66,6 +68,6 @@ const selectWeek = (week: number) => {
 }
 
 .toggle-button:not(.active):hover {
-  background-color: lighten($primary-color, 40%);
+  background-color: color.adjust($primary-color, $lightness: 40%);
 }
 </style>
