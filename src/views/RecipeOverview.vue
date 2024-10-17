@@ -16,6 +16,7 @@
     <!-- Rezeptliste -->
     <div class="recipe-list">
       <the-card
+        @click="goToRecipe(recipe.id)"
         v-for="recipe in filteredRecipes"
         :key="recipe.id"
         :type="CardType.MENU"
@@ -25,15 +26,15 @@
             <!-- Bild des Rezepts, mit Ladeanimation bis geladen -->
             <img
               v-if="recipe.image"
-              :src="recipe.image"
+              :src="`${VITE_BACKEND_URL}/uploads/${recipe.image}`"
               alt="Recipe Image"
               @load="imageLoaded(recipe.id)"
               v-show="!loadingImages[recipe.id]"
             />
+            <div v-else class="no-image">Kein Bild</div>
             <div
-              v-else
               class="loading-spinner"
-              v-show="loadingImages[recipe.id]"
+              v-show="recipe.image && loadingImages[recipe.id]"
             >
               <!-- CSS Ladekringel -->
             </div>
@@ -55,51 +56,23 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import TheCard from '../components/TheCard.vue'
 import { CardType } from '../assets/utils/cardTypes'
 import StarRating from '../components/StarRating.vue' // Importiere StarRating-Komponente
 import DifficultLevel from '../components/DifficultLevel.vue' // Importiere DifficultLevel-Komponente
 import { PlusIcon } from '@heroicons/vue/24/solid' // Heroicons Cake-Icon importieren
+import { useCalendarStore } from '@/stores/calendarStore'
+
+const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL
+
+// Store und Router nutzen
+const calendarStore = useCalendarStore()
+const router = useRouter() // Router initialisieren
 
 // Rezept-Daten
-const recipes = ref([
-  {
-    id: '1',
-    title: 'Spaghetti Bolognese',
-    image: '', // Asynchron laden
-    rating: 4.5,
-    difficulty: 2,
-  },
-  {
-    id: '2',
-    title: 'Caesar Salad',
-    image: '',
-    rating: 4,
-    difficulty: 0,
-  },
-  {
-    id: '2',
-    title: 'Caesar Salad',
-    image: '',
-    rating: 4,
-    difficulty: 1,
-  },
-  {
-    id: '2',
-    title: 'Caesar Salad',
-    image: '',
-    rating: 4,
-    difficulty: 1,
-  },
-  {
-    id: '2',
-    title: 'Caesar Salad',
-    image: '',
-    rating: 4,
-    difficulty: 3,
-  },
-])
+const recipes = computed(() => calendarStore.recipes)
 
 // Zustand für das Suchfeld
 const searchQuery = ref('')
@@ -117,16 +90,28 @@ const filteredRecipes = computed(() =>
 
 // Funktion zum Hinzufügen eines neuen Rezepts
 const addRecipe = () => {
-  console.log('Neues Rezept hinzufügen')
+  router.push({ name: 'recipe', params: { id: 'new' } })
 }
 
 // Bild wird geladen
 const imageLoaded = (id: string) => {
   loadingImages.value[id] = false // Ladeanimation stoppen
 }
+
+// Rezepte laden, wenn die Komponente geladen wird
+onMounted(async () => {
+  await calendarStore.fetchRecipes() // Rezepte vom Backend abrufen
+})
+
+// Funktion zur Navigation zur Rezept-Detailseite
+const goToRecipe = (id: string) => {
+  router.push({ name: 'recipe', params: { id } })
+}
 </script>
 
 <style lang="scss" scoped>
+@use 'sass:color';
+
 .header {
   display: flex;
   justify-content: space-between;
@@ -154,8 +139,19 @@ const imageLoaded = (id: string) => {
   }
 
   &:hover {
-    background-color: darken($primary-color, 10%);
+    background-color: color.adjust($primary-color, $lightness: -10%);
   }
+}
+
+.no-image {
+  background-color: lightgray;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: gray;
+  font-size: 11;
+  width: 100%;
+  height: 100%;
 }
 
 .search-input {
@@ -177,6 +173,7 @@ const imageLoaded = (id: string) => {
 .recipe-image {
   width: 100px;
   height: 100px;
+  min-width: 100px;
   background-color: #f0f0f0;
   border-radius: $border-radius;
   overflow: hidden;
@@ -184,13 +181,28 @@ const imageLoaded = (id: string) => {
   align-items: center;
   justify-content: center;
   margin-right: 1rem;
+
+  > img {
+    object-fit: contain;
+    width: 100%;
+    height: 100%;
+  }
 }
 
 .recipe-details {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  width: auto;
+  flex: 1;
+  min-width: 0; /* Wichtig für Flexbox, damit der Text abgeschnitten werden kann */
+
+  h3 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 1; /* Der Text kann bei Bedarf schrumpfen */
+    max-width: 100%; /* Stellt sicher, dass der Text nicht über das Container hinausgeht */
+  }
 }
 
 .recipe-meta {
