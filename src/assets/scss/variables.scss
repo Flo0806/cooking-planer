@@ -1,0 +1,63 @@
+@use 'sass:color';
+
+// Farben
+$primary-color: #3498db; // Ein freundliches Blau als Primärfarbe
+$secondary-color: #2ecc71; // Ein lebhaftes Grün als Akzentfarbe
+$tertiary-color: #f39c12; // Ein warmes Orange als Highlight-Farbe
+
+// Hintergrundfarben
+$background-color: #f4f4f9; // Helles Grau für den Hintergrund
+$secondary-background-color: #ffffff; // Reinweiß für Karten oder Container
+$header-background-color: #2c3e50; // Dunkelblau für Header und Navigationsleisten
+$menu-card-background: #102635; // Für TheCard, wenn es als Menü genutzt wird.
+$highlight-card-background: #f0f0f5; // Stärker abgedunkelt
+
+// Schriftfarben
+$font-color: #2c3e50; // Dunkelblau für Standardtext
+$secondary-font-color: #7f8c8d; // Grauton für weniger hervorgehobenen Text
+$inverse-font-color: #ffffff; // Weißer Text auf dunklen Hintergründen
+$header-font-color: #ecf0f1; // Neue Farbe für Header- und Titel-Schriften
+
+// Buttons
+$button-primary-background: $primary-color; // Blaue Primärfarbe für Buttons
+$button-secondary-background: $secondary-color; // Grün für Sekundär-Buttons
+$button-primary-font-color: $inverse-font-color; // Weißer Text auf Primär-Buttons
+$button-secondary-font-color: $inverse-font-color; // Weißer Text auf Sekundär-Buttons
+
+// Input-Felder
+$input-border-color: #bdc3c7; // Leichtes Grau für Input-Rahmen
+$input-background-color: #ecf0f1; // Hellgrau für den Input-Hintergrund
+$input-font-color: $font-color; // Standardtextfarbe für Inputs
+$input-focus-border-color: $primary-color; // Fokusfarbe für Input-Felder
+
+// Ränder und Rahmen
+$border-radius: 4px; // Standard-Rundung für Ecken
+$border-thickness: 1px; // Standarddicke der Rahmen
+$input-border-thickness: 2px; // Dickere Ränder für Inputs
+
+// Schatten
+$box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); // Leichter Schatten für Boxen
+$button-box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.15); // Leichter Schatten für Buttons
+
+// Abstände und Padding
+$container-padding: 16px; // Padding für Container
+$element-margin: 8px; // Standard-Margin für Elemente
+$input-padding: 10px 12px; // Padding für Input-Felder
+$button-padding: 10px 20px; // Padding für Buttons
+
+// Schriftarten und Typografie
+$font-family: 'Roboto', sans-serif; // Modern und klar
+$font-size-base: 16px; // Standardgröße für den Text
+$font-size-heading: 24px; // Überschriftengröße
+$font-size-subheading: 18px; // Untertitel-Größe
+$button-font-size: 16px; // Schriftgröße für Buttons
+
+// Weitere Farben für Interaktionen
+$hover-color: color.adjust(
+  $primary-color,
+  $lightness: -10%
+); // Dunkleres Blau bei Hover-Effekten
+$disabled-background-color: #dcdde1; // Deaktivierte Buttons und Inputs
+$disabled-font-color: #7f8c8d; // Textfarbe für deaktivierte Elemente
+$error-color: #e74c3c; // Rot für Fehlernachrichten oder Validierungsfehler
+$success-color: #27ae60; // Grün für Erfolgsmeldungen
