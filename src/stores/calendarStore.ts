@@ -151,12 +151,12 @@ export const useCalendarStore = defineStore('calendar', {
     // Hole alle Rezepte
     async fetchRecipes() {
       try {
+        this.recipes = []
         const response = await fetch(`${VITE_BACKEND_URL}/recipe/recipes`)
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`)
         }
         const recipes = await response.json()
-        console.log('GET DATA', recipes)
         this.recipes = recipes // Speichere die Rezepte im Store
       } catch (error) {
         console.error('Fehler beim Abrufen der Rezepte:', error)
