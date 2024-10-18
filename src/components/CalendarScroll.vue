@@ -21,37 +21,48 @@
           />
         </div>
         <div class="day">{{ day.name }}</div>
-        <div class="date">{{ day.date }}</div>
+        <div class="date">{{ formatDate(day.date) }}</div>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from 'vue'
 import {
   CalendarIcon,
   CheckIcon,
   ShoppingCartIcon,
 } from '@heroicons/vue/24/solid'
-import { onMounted } from 'vue'
+import { onMounted, ref, computed, watch } from 'vue'
 import { useCalendarStore } from '@/stores/calendarStore'
+import { formatDate } from '@/assets/utils/dateFormatter'
 
 // Calendar Store nutzen
 const calendarStore = useCalendarStore()
 const currentWeek = computed(() => calendarStore.currentWeek) // Reaktiver Getter
 
-// Beispielhaft holen wir Woche 1 (später dynamisch)
-onMounted(() => {})
+// Lade die Wochen beim Mounten
+onMounted(async () => {
+  await calendarStore.fetchWeeks() // Wochen-Daten vom Backend abrufen
+})
 
 // Events
 
 // Zustand für die aktive Card
 const activeCard = ref(null)
+
+watch(currentWeek, async newWeek => {
+  if (Array.isArray(newWeek) && newWeek.length === 0) return // Leere Wochen ignorieren
+
+  calendarStore.selectRecipe(null)
+  activeCard.value = null
+})
+
 // Methode zum Auswählen einer Card
 const selectCard = index => {
   if (currentWeek.value[index].recipeId) {
     calendarStore.selectRecipe(currentWeek.value[index].recipeId)
+    calendarStore.selectedDate = currentWeek.value[index].date
   }
   activeCard.value = index
 }
