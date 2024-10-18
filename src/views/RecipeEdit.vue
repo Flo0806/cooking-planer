@@ -73,15 +73,11 @@
       <button
         :disabled="!formValid()"
         class="cancel-button"
-        @click="saveRecipe"
+        @click="router.push({ name: 'recipes' })"
       >
         Zurück
       </button>
-      <button
-        :disabled="!formValid()"
-        class="save-button"
-        @click="router.push({ name: '/recipes' })"
-      >
+      <button :disabled="!formValid()" class="save-button" @click="saveRecipe">
         Speichern
       </button>
     </div>
