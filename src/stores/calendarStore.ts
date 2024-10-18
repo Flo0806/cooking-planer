@@ -59,6 +59,99 @@ export const useCalendarStore = defineStore('calendar', {
     },
   },
   actions: {
+    // Weißt einem Tag ein Rezept zu, inkl. Backend
+    async setRecipeToDay(recipeId: string) {
+      if (!this.selectedDate) return
+
+      for (const week in this.weeks) {
+        const tryFindDayIndex = this.weeks[week as 'week1' | 'week2'].findIndex(
+          f => f.date === this.selectedDate,
+        )
+        if (tryFindDayIndex > -1) {
+          // Zuerst ans Backend senden und nur bei Erfolg updaten wir die Wochen!
+
+          try {
+            const response = await fetch(
+              `${VITE_BACKEND_URL}/week/${this.selectedDate}/recipe`,
+              {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ recipeId }),
+              },
+            )
+
+            if (!response.ok) {
+              const errorMessage = await response.text()
+              throw new Error(
+                `Request failed: ${response.status} - ${errorMessage}`,
+              )
+            }
+
+            const result = await response.json()
+            console.log('Erfolgreich gepatcht:', result)
+
+            this.weeks[week as 'week1' | 'week2'][
+              tryFindDayIndex
+            ].dishSelected = true
+            this.weeks[week as 'week1' | 'week2'][tryFindDayIndex].recipeId =
+              recipeId
+
+            this.weeks = { ...this.weeks }
+            break
+          } catch (error) {
+            console.error('Fehler beim Patchen:', error)
+            return 'Error while patching data'
+          }
+        }
+      }
+    },
+    // Entfernt ein Rezept von einem Tag, inkl. Backend
+    async deleteRecipeFromWeekDay(recipeId: string) {
+      if (!this.selectedDate) return
+
+      for (const week in this.weeks) {
+        const tryFindDayIndex = this.weeks[week as 'week1' | 'week2'].findIndex(
+          f => f.date === this.selectedDate,
+        )
+
+        if (tryFindDayIndex > -1) {
+          // Zuerst ans Backend senden und nur bei Erfolg updaten wir die Wochen!
+          try {
+            const response = await fetch(
+              `${VITE_BACKEND_URL}/week/${this.selectedDate.toISOString()}/recipe/${recipeId}`,
+              {
+                method: 'DELETE',
+              },
+            )
+
+            if (!response.ok) {
+              const errorMessage = await response.text()
+              throw new Error(
+                `Request failed: ${response.status} - ${errorMessage}`,
+              )
+            }
+
+            const result = await response.json()
+            console.log('Erfolgreich gelöscht:', result)
+
+            // Wochen-Array aktualisieren: recipeId entfernen und dishSelected auf false setzen
+            this.weeks[week as 'week1' | 'week2'][
+              tryFindDayIndex
+            ].dishSelected = false
+            this.weeks[week as 'week1' | 'week2'][tryFindDayIndex].recipeId =
+              undefined
+
+            this.weeks = { ...this.weeks } // Reaktivität sicherstellen
+            break
+          } catch (error) {
+            console.error('Fehler beim Löschen:', error)
+            return 'Error while deleting recipe'
+          }
+        }
+      }
+    },
     // Holt die aktuelle und nächste Woche mit allen Rezepten und Einkaufslisten ab
     async fetchWeeks() {
       try {
