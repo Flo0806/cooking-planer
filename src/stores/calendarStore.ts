@@ -1,13 +1,9 @@
 // src/stores/calendarStore.js
 import { defineStore } from 'pinia'
 
-//#region Mockdaten
-
-//#endregion
-
 interface WeekData {
   name: string
-  date: string
+  date: Date
   dishSelected: boolean
   shoppingList: boolean
   recipeId?: string
@@ -32,6 +28,7 @@ interface CalendarState {
   currentWeekNumber: number
   selectedRecipeId?: string
   recipes: Recipe[]
+  selectedDate: Date | undefined
 }
 
 const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL
@@ -39,99 +36,13 @@ const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL
 export const useCalendarStore = defineStore('calendar', {
   state: (): CalendarState => ({
     weeks: {
-      week1: [
-        {
-          name: 'Montag',
-          date: '01.01.2024',
-          dishSelected: false,
-          shoppingList: false,
-        },
-        {
-          name: 'Dienstag',
-          date: '02.01.2024',
-          dishSelected: true,
-          shoppingList: false,
-          recipeId: 'f47b9ef8-4e5b-4b82-85cf-9dcb097c02a8',
-        },
-        {
-          name: 'Mittwoch',
-          date: '03.01.2024',
-          dishSelected: true,
-          shoppingList: true,
-        },
-        {
-          name: 'Donnerstag',
-          date: '04.01.2024',
-          dishSelected: false,
-          shoppingList: false,
-        },
-        {
-          name: 'Freitag',
-          date: '05.01.2024',
-          dishSelected: false,
-          shoppingList: false,
-        },
-        {
-          name: 'Samstag',
-          date: '06.01.2024',
-          dishSelected: false,
-          shoppingList: false,
-        },
-        {
-          name: 'Sonntag',
-          date: '07.01.2024',
-          dishSelected: false,
-          shoppingList: false,
-        },
-      ],
-      week2: [
-        {
-          name: 'Montag',
-          date: '08.01.2024',
-          dishSelected: false,
-          shoppingList: false,
-        },
-        {
-          name: 'Dienstag',
-          date: '09.01.2024',
-          dishSelected: false,
-          shoppingList: false,
-        },
-        {
-          name: 'Mittwoch',
-          date: '10.01.2024',
-          dishSelected: false,
-          shoppingList: false,
-        },
-        {
-          name: 'Donnerstag',
-          date: '11.01.2024',
-          dishSelected: true,
-          shoppingList: false,
-        },
-        {
-          name: 'Freitag',
-          date: '12.01.2024',
-          dishSelected: false,
-          shoppingList: false,
-        },
-        {
-          name: 'Samstag',
-          date: '13.01.2024',
-          dishSelected: true,
-          shoppingList: true,
-        },
-        {
-          name: 'Sonntag',
-          date: '14.01.2024',
-          dishSelected: false,
-          shoppingList: false,
-        },
-      ],
+      week1: [],
+      week2: [],
     },
     currentWeekNumber: 1,
     selectedRecipeId: undefined,
     recipes: [], // Alle bisher geladenen Rezepte
+    selectedDate: undefined,
   }),
   getters: {
     // Getter, der basierend auf currentWeekNumber entweder "current" oder "next" zurückgibt
@@ -148,6 +59,27 @@ export const useCalendarStore = defineStore('calendar', {
     },
   },
   actions: {
+    // Holt die aktuelle und nächste Woche mit allen Rezepten und Einkaufslisten ab
+    async fetchWeeks() {
+      try {
+        // Vorher zurücksetzen
+        this.weeks.week1 = []
+        this.weeks.week2 = []
+
+        const response = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/week/weeks`,
+        )
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`)
+        }
+        const [week1, week2] = (await response.json()) as WeekData[][]
+        // Wir müssen das Datum (welches durch JSON immer als string ankommt) wieder zu einem Datum machen
+        this.weeks.week1 = week1.map(w => ({ ...w, date: new Date(w.date) }))
+        this.weeks.week2 = week2.map(w => ({ ...w, date: new Date(w.date) }))
+      } catch (error) {
+        console.error('Fehler beim Abrufen der Wochen:', error)
+      }
+    },
     // Hole alle Rezepte
     async fetchRecipes() {
       try {
@@ -167,11 +99,13 @@ export const useCalendarStore = defineStore('calendar', {
       week = Math.max(1, Math.min(week, 2))
       this.currentWeekNumber = week
     },
-    getWeeks() {
-      // Später über Rest
-    },
     // Methode zum Setzen des Rezepts, wenn auf eine Card geklickt wird
-    selectRecipe(recipeId: string) {
+    selectRecipe(recipeId: string | null) {
+      if (!recipeId) {
+        this.selectedRecipeId = undefined
+        return
+      }
+
       this.selectedRecipeId = recipeId
 
       // Prüfen, ob das Rezept bereits in der Liste vorhanden ist
@@ -182,6 +116,25 @@ export const useCalendarStore = defineStore('calendar', {
         console.log(
           `Rezept mit der ID ${recipeId} nicht gefunden. Daten müssen vom Server geholt werden.`,
         )
+
+        // Server-Request, um das Rezept zu holen
+        fetch(`${import.meta.env.VITE_BACKEND_URL}/recipe/${recipeId}`)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! Status: ${response.status}`)
+            }
+            return response.json() // Rezeptdaten aus dem Server-Response lesen
+          })
+          .then(recipe => {
+            // Rezept dem recipes-Array hinzufügen
+            this.recipes.push(recipe)
+            console.log(
+              `Rezept mit der ID ${recipeId} wurde erfolgreich geladen und hinzugefügt.`,
+            )
+          })
+          .catch(error => {
+            console.error('Fehler beim Laden des Rezepts:', error)
+          })
       }
     },
   },
