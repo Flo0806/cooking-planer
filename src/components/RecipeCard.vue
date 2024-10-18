@@ -79,6 +79,7 @@ const onImageLoaded = () => {
   text-align: center;
   position: relative;
   flex-direction: column;
+  box-sizing: border-box;
 
   .date-title {
     color: $primary-color;
@@ -179,7 +180,7 @@ const onImageLoaded = () => {
   }
 
   .recipe-image {
-    max-width: 400px;
+    max-width: 300px;
     margin-right: 20px;
   }
 
@@ -188,7 +189,7 @@ const onImageLoaded = () => {
   }
 
   .no-image {
-    max-width: 400px;
+    max-width: 300px;
     margin-right: 20px;
   }
 
