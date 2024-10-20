@@ -187,6 +187,30 @@ export const useCalendarStore = defineStore('calendar', {
         console.error('Fehler beim Abrufen der Rezepte:', error)
       }
     },
+    // Löscht ein Rezept, inkl. Backend
+    async deleteRecipe(recipeId: string) {
+      try {
+        // Sende den DELETE-Request
+        const response = await fetch(`${VITE_BACKEND_URL}/recipe/${recipeId}`, {
+          method: 'DELETE',
+        })
+
+        if (!response.ok) {
+          const errorMessage = await response.text()
+          throw new Error(
+            `Request failed: ${response.status} - ${errorMessage}`,
+          )
+        }
+
+        console.log(`Rezept mit der ID ${recipeId} wurde erfolgreich gelöscht.`)
+
+        // Entferne das Rezept aus dem State, wenn der Request erfolgreich ist
+        this.recipes = this.recipes.filter(recipe => recipe.id !== recipeId)
+      } catch (error) {
+        console.error('Fehler beim Löschen des Rezepts:', error)
+        return 'Error while deleting recipe'
+      }
+    },
     // Setzte die Wochennummer
     setWeek(week: number) {
       week = Math.max(1, Math.min(week, 2))

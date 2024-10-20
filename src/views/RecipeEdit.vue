@@ -71,13 +71,27 @@
     <!-- Speichern-Button -->
     <div style="display: flex; gap: 20px">
       <button
+        v-if="!isNewRecipe"
         :disabled="!formValid()"
-        class="cancel-button"
+        class="button-error"
+        @click="deleteRecipe"
+      >
+        <div class="remove-button-container">
+          <TrashIcon class="btn-icon"></TrashIcon>
+        </div>
+      </button>
+      <button
+        :disabled="!formValid()"
+        class="button-error"
         @click="router.push({ name: 'recipes' })"
       >
         Zurück
       </button>
-      <button :disabled="!formValid()" class="save-button" @click="saveRecipe">
+      <button
+        :disabled="!formValid()"
+        class="button-primary"
+        @click="saveRecipe"
+      >
         Speichern
       </button>
     </div>
@@ -97,6 +111,7 @@ import TheCard from '../components/TheCard.vue'
 import UploadImage from '../components/UploadImage.vue'
 import StarRating from '../components/StarRating.vue'
 import DifficultLevel from '../components/DifficultLevel.vue'
+import { TrashIcon } from '@heroicons/vue/24/solid'
 
 const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL // Zugriff auf die Umgebungsvariable
 
@@ -173,6 +188,12 @@ const saveRecipe = () => {
     difficulty: currentDifficultLevel.value,
   }
   sendRecipe(recipeData, imageFile.value, !isNewRecipe.value ? 'PATCH' : 'POST')
+}
+
+// Rezept löschen und alle verknüfpungen lösen
+const deleteRecipe = async () => {
+  await calendarStore.deleteRecipe(recipeId)
+  router.push({ name: 'recipes' })
 }
 
 // ----- Validation...
@@ -385,64 +406,22 @@ async function sendRecipe(
   }
 }
 
+.remove-button-container {
+  color: white;
+  display: flex;
+
+  .btn-icon {
+    width: 24px;
+    height: 24px;
+  }
+}
+
 .textarea-input {
   resize: none;
   height: 150px;
 
   @media (min-width: 1024px) {
     height: 200px; /* Mehr Platz für das Textfeld auf Desktops */
-  }
-}
-
-.save-button {
-  width: 150px;
-  background-color: $primary-color;
-  color: $inverse-font-color;
-  padding: 15px 30px;
-  border: none;
-  border-radius: $border-radius;
-  cursor: pointer;
-  font-size: 18px;
-  transition: background-color 0.3s ease;
-
-  &:hover {
-    background-color: color.adjust($primary-color, $lightness: -10%);
-  }
-
-  &:disabled {
-    pointer-events: none;
-    opacity: 0.5;
-  }
-
-  @media (min-width: 1024px) {
-    padding: 20px 40px;
-    font-size: 20px; /* Größere Buttons auf Desktops */
-  }
-}
-
-.cancel-button {
-  width: 150px;
-  background-color: $error-color;
-  color: $inverse-font-color;
-  padding: 15px 30px;
-  border: none;
-  border-radius: $border-radius;
-  cursor: pointer;
-  font-size: 18px;
-  transition: background-color 0.3s ease;
-
-  &:hover {
-    background-color: color.adjust($primary-color, $lightness: -10%);
-  }
-
-  &:disabled {
-    pointer-events: none;
-    opacity: 0.5;
-  }
-
-  @media (min-width: 1024px) {
-    padding: 20px 40px;
-    font-size: 20px; /* Größere Buttons auf Desktops */
   }
 }
 

@@ -72,7 +72,7 @@ const onImageLoaded = () => {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .outer-container {
   display: flex;
   align-items: center;

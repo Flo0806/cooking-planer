@@ -16,6 +16,7 @@
     <!-- Rezeptliste -->
     <div class="recipe-list">
       <the-card
+        style="cursor: pointer"
         @click="goToRecipe(recipe.id)"
         v-for="recipe in filteredRecipes"
         :key="recipe.id"
@@ -44,9 +45,9 @@
             <h3>{{ recipe.title }}</h3>
             <div class="recipe-meta">
               <!-- StarRating Komponente -->
-              <StarRating :value="recipe.rating" :ReadOnly="true" />
+              <StarRating :value="recipe.rating" :readable="true" />
               <!-- DifficultLevel Komponente -->
-              <DifficultLevel :value="recipe.difficulty" :ReadOnly="true" />
+              <DifficultLevel :value="recipe.difficulty" :readable="true" />
             </div>
           </div>
         </div>
@@ -156,6 +157,8 @@ const goToRecipe = (id: string) => {
   font-size: 11;
   width: 100%;
   height: 100%;
+  flex: 1;
+  overflow: hidden;
 }
 
 .search-input {
@@ -186,6 +189,8 @@ const goToRecipe = (id: string) => {
   align-items: center;
   justify-content: center;
   margin-right: 1rem;
+  border: 2px solid $primary-color; /* Primärfarbe als Rahmen */
+  border-radius: 8px;
 
   > img {
     object-fit: contain;
@@ -232,6 +237,43 @@ const goToRecipe = (id: string) => {
   }
   100% {
     transform: rotate(360deg);
+  }
+}
+
+/* Desktop-spezifische Anpassungen */
+@media (min-width: 1024px) {
+  .recipe-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 30px;
+    padding: 20px;
+  }
+
+  .recipe-image {
+    width: 150px;
+    height: 150px;
+  }
+
+  .recipe-details {
+    h3 {
+      font-size: 1.5rem; /* Größere Schriftgröße für den Titel */
+    }
+
+    .recipe-meta {
+      gap: 15px; /* Größerer Abstand zwischen den Meta-Daten */
+    }
+  }
+
+  .search-input {
+    width: 100%;
+    max-width: 500px; /* Größeres Suchfeld für Desktop */
+    font-size: 1.2rem;
+  }
+
+  .add-recipe-button {
+    padding: 10px 30px;
+    font-size: 1.2rem;
+    height: 50px;
   }
 }
 </style>
